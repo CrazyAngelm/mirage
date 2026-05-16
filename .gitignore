@@ -1,0 +1,22 @@
+# Tooling
+.pi
+.serena
+.superpowers/
+
+# Build and release artifacts
+bin/
+release/
+*.exe
+mirage-server-linux-amd64
+
+# Client import bundles with secrets
+prod-link.txt
+**/prod-link.txt
+**/state/default.link
+**/state/profile.link
+**/state/profiles.json
+**/state/active_profile_id.txt
+
+# Runtime logs/configs
+logs/
+configs/mirage.yaml
