@@ -20,20 +20,20 @@ Release page: GitHub Releases этого repository.
 ### One-command install
 
 ```bash
-curl -fsSL "https://github.com/<owner>/<repo>/releases/download/v0.1.0/install-server.sh" |
+curl -fsSL "https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/install-server.sh" |
 sudo env \
-  MIRAGE_SERVER_URL="https://github.com/<owner>/<repo>/releases/download/v0.1.0/mirage-server-linux-amd64" \
-  MIRAGE_SHA256SUMS_URL="https://github.com/<owner>/<repo>/releases/download/v0.1.0/SHA256SUMS" \
+  MIRAGE_SERVER_URL="https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/mirage-server-linux-amd64" \
+  MIRAGE_SHA256SUMS_URL="https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/SHA256SUMS" \
   bash -s -- --auto
 ```
 
 Если public IP detection не сработал или нужен явный host:
 
 ```bash
-curl -fsSL "https://github.com/<owner>/<repo>/releases/download/v0.1.0/install-server.sh" |
+curl -fsSL "https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/install-server.sh" |
 sudo env \
-  MIRAGE_SERVER_URL="https://github.com/<owner>/<repo>/releases/download/v0.1.0/mirage-server-linux-amd64" \
-  MIRAGE_SHA256SUMS_URL="https://github.com/<owner>/<repo>/releases/download/v0.1.0/SHA256SUMS" \
+  MIRAGE_SERVER_URL="https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/mirage-server-linux-amd64" \
+  MIRAGE_SHA256SUMS_URL="https://github.com/CrazyAngelm/mirage/releases/download/v0.1.0/SHA256SUMS" \
   bash -s -- --auto --host SERVER_IP
 ```
 
@@ -124,7 +124,7 @@ gh release upload v0.1.0 `
   .\release\install-server.sh `
   .\release\mirage-client.exe `
   .\release\SHA256SUMS `
-  --repo <owner>/<repo> `
+  --repo CrazyAngelm/mirage `
   --clobber
 ```
 
