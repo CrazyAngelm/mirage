@@ -8,3 +8,10 @@ func TestCheckResultSummary(t *testing.T) {
 		t.Fatalf("line = %q", result.Line())
 	}
 }
+
+func TestCheckResultSummaryIncludesOKDetail(t *testing.T) {
+	result := Result{Name: "sing-box.exe", OK: true, Fix: `C:\Mirage\bin\sing-box.exe`}
+	if result.Line() != `sing-box.exe: OK - C:\Mirage\bin\sing-box.exe` {
+		t.Fatalf("line = %q", result.Line())
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"mirage/internal/bundle"
@@ -352,5 +353,55 @@ func TestForcedAmneziaWGConfigIncludesEndpointAndNoURLTest(t *testing.T) {
 	}
 	if !hasBlock {
 		t.Fatal("block outbound missing")
+	}
+}
+
+func TestBuildSingBoxOutboundsUsesXraySidecarSOCKS(t *testing.T) {
+	b := bundle.Bundle{Transports: map[string]any{
+		"xray_reality_xhttp": map[string]any{"server": "example.com", "port": float64(443), "uuid": "u", "server_name": "www.microsoft.com", "public_key": "pk", "short_id": "sid", "path": "/api/session"},
+	}}
+	outbounds, endpoints := buildSingBoxOutbounds(b)
+	if len(endpoints) != 0 {
+		t.Fatalf("endpoints = %#v, want none", endpoints)
+	}
+	if len(outbounds) != 1 {
+		t.Fatalf("outbounds = %#v, want one xray outbound", outbounds)
+	}
+	got := outbounds[0]
+	if got["type"] != "socks" {
+		t.Fatalf("xray outbound type = %v, want socks", got["type"])
+	}
+	if got["tag"] != "xray_reality_xhttp" {
+		t.Fatalf("xray outbound tag = %v, want xray_reality_xhttp", got["tag"])
+	}
+	if got["server"] != "127.0.0.1" {
+		t.Fatalf("xray outbound server = %v, want 127.0.0.1", got["server"])
+	}
+	if got["server_port"] != 2081 {
+		t.Fatalf("xray outbound server_port = %v, want 2081", got["server_port"])
+	}
+}
+
+func TestGeneratedSingBoxConfigHasNoLegacyNativeVLESS(t *testing.T) {
+	b := bundle.Bundle{Transports: map[string]any{
+		"xray_reality_xhttp": map[string]any{"server": "example.com", "port": float64(443), "uuid": "u", "server_name": "www.microsoft.com", "public_key": "pk", "short_id": "sid", "path": "/api/session"},
+	}}
+	outbounds, endpoints := buildSingBoxOutbounds(b)
+	cfg, err := templates.SingBoxConfigWithEndpoints("xray_reality_xhttp", outbounds, endpoints)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(cfg, "xray_ws_tls") {
+		t.Fatalf("generated config contains legacy xray_ws_tls: %s", cfg)
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal([]byte(cfg), &decoded); err != nil {
+		t.Fatal(err)
+	}
+	for _, outbound := range decoded["outbounds"].([]any) {
+		item := outbound.(map[string]any)
+		if item["type"] == "vless" {
+			t.Fatalf("generated config contains native vless outbound: %#v", item)
+		}
 	}
 }

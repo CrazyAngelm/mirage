@@ -8,7 +8,8 @@ Mirage is a Go-based VPN manager/orchestrator for a Linux server and Windows por
 
 - `mirage-server-linux-amd64` — Linux server binary for Ubuntu/Debian VPS.
 - `install-server.sh` — one-command server installer.
-- `mirage-client.exe` — Windows portable GUI client.
+- `mirage-windows-amd64.zip` — Windows portable GUI client with required `sing-box` and `xray` sidecars.
+- `mirage-client.exe` — advanced/manual Windows client binary without sidecars.
 - `SHA256SUMS` — release artifact checksums.
 
 Release page: GitHub Releases for this repository.
@@ -60,11 +61,12 @@ sudo /opt/mirage/mirage-server show-link
 
 ## Windows client
 
-1. Download `mirage-client.exe` from the release page.
-2. Run as Administrator.
-3. Import the `mirage://` link printed by server setup.
-4. Choose a server profile in the GUI.
-5. Click Connect.
+1. Download `mirage-windows-amd64.zip` from the release page.
+2. Extract the ZIP.
+3. Run `mirage-client.exe` from the extracted folder as Administrator.
+4. Import the `mirage://` link printed by server setup.
+5. Choose a server profile in the GUI.
+6. Click Connect.
 
 GUI supports:
 
@@ -122,6 +124,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-release.ps1
 gh release upload v0.1.0 `
   .\release\mirage-server-linux-amd64 `
   .\release\install-server.sh `
+  .\release\mirage-windows-amd64.zip `
   .\release\mirage-client.exe `
   .\release\SHA256SUMS `
   --repo CrazyAngelm/mirage `

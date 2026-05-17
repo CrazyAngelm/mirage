@@ -203,9 +203,9 @@ func ConnectClient(stdout io.Writer, stderr io.Writer) error {
 		return fmt.Errorf("no imported profile; run mirage-client import first")
 	}
 	mode := ReadClientMode(base)
-	singBox := filepath.Join(base, "bin", "sing-box.exe")
-	if _, err := os.Stat(singBox); err != nil {
-		_, err := fmt.Fprintf(stdout, "sing-box missing at %s\nplace sing-box.exe there and run connect again\nmode=%s\n", singBox, mode)
+	singBox, ok := resolveSidecar(clientExeDir(), base, "sing-box.exe")
+	if !ok {
+		_, err := fmt.Fprintf(stdout, "%s\nchecked: %s\nmode=%s\n", missingSidecarMessage("sing-box.exe"), singBox, mode)
 		return err
 	}
 	if modes.IsTun(mode) && !sysproxy.IsAdmin() {
@@ -295,8 +295,9 @@ func newHealthChecker(b bundle.Bundle, mode modes.Mode) *healthcheck.Checker {
 }
 
 func startXraySidecar(base string, stdout io.Writer) (*exec.Cmd, error) {
-	xrayBin := filepath.Join(base, "bin", "xray.exe")
-	if _, err := os.Stat(xrayBin); err != nil {
+	xrayBin, ok := resolveSidecar(clientExeDir(), base, "xray.exe")
+	if !ok {
+		fmt.Fprintf(stdout, "warning: %s\nchecked: %s\n", missingSidecarMessage("xray.exe"), xrayBin)
 		return nil, nil
 	}
 	cfgPath := filepath.Join(base, "configs", "xray-client.json")
@@ -382,18 +383,18 @@ func doctorClient(stdout io.Writer) error {
 		results = append(results, diagnostics.Result{Name: "mode", OK: true, Fix: fmt.Sprintf("current=%s", mode)})
 	}
 
-	singBox := filepath.Join(base, "bin", "sing-box.exe")
-	if _, err := os.Stat(singBox); err != nil {
-		results = append(results, diagnostics.Result{Name: "sing-box.exe", OK: false, Fix: "place sing-box.exe in bin directory"})
+	singBox, ok := resolveSidecar(clientExeDir(), base, "sing-box.exe")
+	if !ok {
+		results = append(results, diagnostics.Result{Name: "sing-box.exe", OK: false, Fix: missingSidecarMessage("sing-box.exe")})
 	} else {
-		results = append(results, diagnostics.Result{Name: "sing-box.exe", OK: true})
+		results = append(results, diagnostics.Result{Name: "sing-box.exe", OK: true, Fix: singBox})
 	}
 
-	xrayBin := filepath.Join(base, "bin", "xray.exe")
-	if _, err := os.Stat(xrayBin); err != nil {
-		results = append(results, diagnostics.Result{Name: "xray.exe", OK: false, Fix: "place xray.exe in bin directory"})
+	xrayBin, ok := resolveSidecar(clientExeDir(), base, "xray.exe")
+	if !ok {
+		results = append(results, diagnostics.Result{Name: "xray.exe", OK: false, Fix: missingSidecarMessage("xray.exe")})
 	} else {
-		results = append(results, diagnostics.Result{Name: "xray.exe", OK: true})
+		results = append(results, diagnostics.Result{Name: "xray.exe", OK: true, Fix: xrayBin})
 	}
 
 	xrayCfg := filepath.Join(base, "configs", "xray-client.json")
@@ -404,8 +405,10 @@ func doctorClient(stdout io.Writer) error {
 	}
 
 	cfg := filepath.Join(base, "configs", "sing-box.json")
-	if _, err := os.Stat(cfg); err != nil {
+	if payload, err := os.ReadFile(cfg); err != nil {
 		results = append(results, diagnostics.Result{Name: "sing-box.json", OK: false, Fix: "run mirage-client import or mode"})
+	} else if stale, reason := singBoxConfigLooksStale(payload); stale {
+		results = append(results, diagnostics.Result{Name: "sing-box.json", OK: false, Fix: reason + "; re-import profile with current Mirage client"})
 	} else {
 		results = append(results, diagnostics.Result{Name: "sing-box.json", OK: true})
 	}
